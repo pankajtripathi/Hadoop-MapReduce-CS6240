@@ -407,7 +407,7 @@ public class A0 {
 			bw1.close();
 			long end = System.currentTimeMillis();
 			String timetaken = String.valueOf((end-start)/1000);
-			bw2.write(timetaken);
+			bw2.write("SingleThread"+"\t"+opr+"\t"+timetaken);
 			bw2.close();
 		}
 		catch(IOException ie){}
