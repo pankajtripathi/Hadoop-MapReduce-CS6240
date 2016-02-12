@@ -12,7 +12,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -25,23 +27,23 @@ import com.opencsv.CSVReader;
 public class SanityCheckProcess implements Runnable {
 	File csvFile = null;
 	String origin= null, destination= null,originCityName= null,destCityName= null,originStateAbr= null,
-			destStateAbr= null,originStateName= null,destStateName= null, cancelled= null,
-			carrier= null,price= null;
+			destStateAbr= null,originStateName= null,destStateName= null, cancelled= null,carrier= null,
+			price= null;
 	String originAirportID=null,destAirportID= null,originAirportSeqID = null,destAirportSeqID= null,
-			originCityMarketID = null,destCityMarketID= null,
-			originStateFips= null,destStateFips= null,
+			originCityMarketID = null,destCityMarketID= null,originStateFips= null,destStateFips= null,
 			originWac= null,destWac= null,monthStr=null,yearStr=null,year=null;
-	int timeZone = 0,month=0;
+	int timeZone=0,month=0;
 	String  crsArrTime= null,crsDepTime= null,crsElapsedTime= null,arrTime= null,depTime= null,
 			actualElapsedTime= null,arrDelay= null,arrDelayMinutes = null, arrDel15= null;
-	public static int badData,goodData;
-	public static Set<String> activeIn2015 = new TreeSet<String>();
+	int badData,goodData;
 	TreeMap<String,List<Double>> map;
+	public static Set<String> activeIn2015 = new TreeSet<String>();
 	List<Double> list;
+	public static TreeMap<String,Double> avgPrice=new TreeMap<String, Double>();
 	public SanityCheckProcess(File f) {
 		this.csvFile = f;
 	}
-	
+
 	/**
 	 * This method reads CSV file and extracts data based on the columns.
 	 * Open CSV file and extract the index of the required columns.
@@ -57,7 +59,7 @@ public class SanityCheckProcess implements Runnable {
 					destWacIdx = 0, originIdx = 0,destinationIdx = 0, originCityNameIdx = 0, destCityNameIdx = 0,
 					originStateAbrIdx = 0, destStateAbrIdx = 0, originStateNameIdx = 0, destStateNameIdx = 0,
 					arrTimeIdx = 0,depTimeIdx = 0, actualElapsedTimeIdx = 0, arrDelayMinIdx = 0, yearIdx = 0,
-					crsElapsedTimeIdx = 0, arrDelayIdx = 0, arrDel15Idx = 0, cancelledIdx = 0, priceIdx = 0,
+					crsElapsedTimeIdx = 0, arrDelayIdx = 0, arrDel15Idx = 0, timeZone=0,cancelledIdx = 0, priceIdx = 0,
 					carrIdx = 0, monthIdx = 0;
 			map = new TreeMap<String, List<Double>>();
 			try {
@@ -172,7 +174,7 @@ public class SanityCheckProcess implements Runnable {
 					if (isNum(yearStr) && StringUtils.isNotBlank(yearStr) && !StringUtils.isEmpty(yearStr)) {
 						year = yearStr;
 					}
-					if (!isTimesChecked()) {badData++;continue;}
+					if(!isTimeChecked()){badData++;continue;}	
 					if ((timeZone % 60) != 0) {badData++;continue;}
 					if (!isIdCorrect()) {badData++;continue;}
 					if (!isFieldCorrect()) {badData++;continue;}
@@ -201,6 +203,7 @@ public class SanityCheckProcess implements Runnable {
 	 * @param field -> field passed to check time is valid
 	 * Helper for sanity check of time fields*/
 	public boolean timeChecker(String field){
+
 		if(!field.isEmpty()&&StringUtils.isNumeric(field)&&!field.equals("0")&&!field.equals(null)){
 			return true;
 		}else{
@@ -211,6 +214,7 @@ public class SanityCheckProcess implements Runnable {
 	 * @param field -> id passed for check
 	 * Helper for sanity check of ID fields*/
 	public boolean idCorrect(String field){
+
 		if( StringUtils.isNotBlank(field)&&field!=null && StringUtils.isNumeric(field))
 			return true;
 		else
@@ -257,7 +261,7 @@ public class SanityCheckProcess implements Runnable {
 	 * Check CRSArrTime,CRSDepTime,CRSElapsedTime for their validity using timeChecker method .
 	 * If they are valid then calculate the time zone.
 	 * */
-	public boolean isTimesChecked(){
+	public boolean isTimeChecked(){
 		if(timeChecker(crsArrTime)&&timeChecker(crsDepTime)&&timeChecker(crsElapsedTime)){
 			timeZone=convertToMinutes(crsArrTime)-convertToMinutes(crsDepTime)-Integer.parseInt(crsElapsedTime);
 			return true;
@@ -313,7 +317,7 @@ public class SanityCheckProcess implements Runnable {
 	/**
 	 * Create a map of carrier and month as key and list of their prices as values.
 	 * if map is has a key value pair then add the price for the carrier by retrieving its existing list of
-	 * prices and adding the current price.
+	 * prices and adding the current price .
 	 * Add the carrier and updated list in map.
 	 * if map is empty or there is a carrier which is not similar to current carrier then create new list add the
 	 * price and put it in map.
@@ -331,5 +335,43 @@ public class SanityCheckProcess implements Runnable {
 			map.put(mapkey, list);
 		}
 	}
+	/**
+	 * Retrieve the carrier with month as key and list of prices as values from map.
+	 * calculate avg of the prices and then add it to new tree map of type
+	 * TreeMap<String,Double> which will have carrier and month as key and mean price as value.
+	 * */
+	public void calculateMean() {
+
+		for (Map.Entry<String,List<Double>> entry:map.entrySet()) {
+			String carrierandmonth = entry.getKey();
+			int size=entry.getValue().size();
+			double avg=0,mean=0;
+			for (Double val:entry.getValue()) {
+				avg=avg+val;
+			}
+			mean=avg/size;
+			avgPrice.put(carrierandmonth,mean);
+		}
+	}
+	/**
+	 * Retrieve the carrier with month as key and list of prices as values from map.
+	 * calculate median of the prices and then add it to new tree map of type
+	 * TreeMap<String,Double> which will have carrier and month as key and median price as value.
+	 * */
+	public void calculateMedian(){
+		double median=0;
+		for (Map.Entry<String,List<Double>> entry:map.entrySet()) {
+			String monthandcarrier = entry.getKey();
+			Collections.sort(entry.getValue());
+			int length=entry.getValue().size();
+			int middle=length/2;
+			if(length%2==1)
+				median=entry.getValue().get(middle);
+			else
+				median=(entry.getValue().get(middle-1)+entry.getValue().get(middle))/2.0;
+			avgPrice.put(monthandcarrier,median);
+		}
+	}
 }
+
 

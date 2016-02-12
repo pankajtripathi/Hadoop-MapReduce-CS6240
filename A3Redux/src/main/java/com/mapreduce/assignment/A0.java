@@ -20,7 +20,7 @@ public class A0 {
 	String originAirportID=null,destAirportID= null,originAirportSeqID = null,destAirportSeqID= null,
 			originCityMarketID = null,destCityMarketID= null,originStateFips= null,destStateFips= null,
 			originWac= null,destWac= null,monthStr=null,yearStr=null,year=null;
-	int timeZone = 0,month=0;
+	int timeZone,month=0;
 	String  crsArrTime= null,crsDepTime= null,crsElapsedTime= null,arrTime= null,depTime= null,
 			actualElapsedTime= null,arrDelay= null,arrDelayMinutes = null, arrDel15= null;
 	public static int badData,goodData;
@@ -28,7 +28,6 @@ public class A0 {
 	public static Set<String> activeIn2015 = new TreeSet<String>();
 	List<Double> list;
 	public static TreeMap<String,Double> avgPrice=new TreeMap<String, Double>();
-
 	/**
 	 * This method reads CSV file and extracts data based on the columns.
 	 * Open CSV file and extract the index of the required columns.
@@ -37,14 +36,14 @@ public class A0 {
 	public void readCSV(File csvFile,String opr) {
 		CSVReader reader=null;
 		String data[];
-		int    crsArrTimeIdx = 0,crsDepTimeIdx = 0,originAirportIDIdx= 0,destAirportIDIdx= 0,
-				originAirportSeqIDIdx= 0,
-				destAirportSeqIDIdx= 0,originCityMarketIDIdx= 0,destCityMarketIDIdx= 0,
-				originStateFipsIdx= 0,destStateFipsIdx= 0,originWacIdx= 0,destWacIdx= 0,originIdx= 0,
-				destinationIdx= 0,originCityNameIdx= 0,destCityNameIdx= 0,
-				originStateAbrIdx= 0,destStateAbrIdx= 0,originStateNameIdx= 0,destStateNameIdx= 0,arrTimeIdx= 0,
-				depTimeIdx= 0,actualElapsedTimeIdx= 0,arrDelayMinIdx=0,yearIdx=0,
-				crsElapsedTimeIdx = 0,arrDelayIdx= 0,arrDel15Idx= 0,cancelledIdx=0,priceIdx=0,carrIdx=0,monthIdx=0;
+		int crsArrTimeIdx = 0, crsDepTimeIdx = 0, originAirportIDIdx = 0, destAirportIDIdx = 0,
+				originAirportSeqIDIdx = 0,destAirportSeqIDIdx = 0, originCityMarketIDIdx = 0, 
+				destCityMarketIDIdx = 0,originStateFipsIdx = 0, destStateFipsIdx = 0, originWacIdx = 0, 
+				destWacIdx = 0, originIdx = 0,destinationIdx = 0, originCityNameIdx = 0, destCityNameIdx = 0,
+				originStateAbrIdx = 0, destStateAbrIdx = 0, originStateNameIdx = 0, destStateNameIdx = 0,
+				arrTimeIdx = 0,depTimeIdx = 0, actualElapsedTimeIdx = 0, arrDelayMinIdx = 0, yearIdx = 0,
+				crsElapsedTimeIdx = 0, arrDelayIdx = 0, arrDel15Idx = 0,timeZone=0,cancelledIdx = 0, priceIdx = 0,
+				carrIdx = 0, monthIdx = 0;
 		map= new TreeMap<String, List<Double>>();
 		try {
 
@@ -159,7 +158,7 @@ public class A0 {
 				if(isNum(yearStr)&&StringUtils.isNotBlank(yearStr)&&!StringUtils.isEmpty(yearStr)) {
 					year = yearStr;
 				}
-				if (!isTimesChecked()){badData++;continue;}
+				if(!isTimeChecked()){badData++;continue;}
 				if((timeZone%60)!=0){badData++;continue;}
 				if(!isIdCorrect()){badData++;continue;}
 				if (!isFieldCorrect()){badData++;continue;}
@@ -250,7 +249,7 @@ public class A0 {
 	 * Check CRSArrTime,CRSDepTime,CRSElapsedTime for their validity using timeChecker method .
 	 * If they are valid then calculate the time zone.
 	 * */
-	public boolean isTimesChecked(){
+	public boolean isTimeChecked(){
 		if(timeChecker(crsArrTime)&&timeChecker(crsDepTime)&&timeChecker(crsElapsedTime)){
 			timeZone=convertToMinutes(crsArrTime)-convertToMinutes(crsDepTime)-Integer.parseInt(crsElapsedTime);
 			return true;
@@ -372,6 +371,7 @@ public class A0 {
 		for (File csvfile:files) {
 			readCSV(csvfile,opr);
 		}
+		System.out.println(badData);
 		try{
 			File outputFolder = new File(outputDir);
 			if (!outputFolder.exists()) {
