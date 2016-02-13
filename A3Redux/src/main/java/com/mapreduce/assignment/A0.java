@@ -371,7 +371,6 @@ public class A0 {
 		for (File csvfile:files) {
 			readCSV(csvfile,opr);
 		}
-		System.out.println(badData);
 		try{
 			File outputFolder = new File(outputDir);
 			if (!outputFolder.exists()) {

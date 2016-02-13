@@ -41,17 +41,15 @@ import org.apache.hadoop.util.ToolRunner;
  * 
  */
 public class AirlineFare extends Configured implements Tool {
-
-	static public Set<String> activeIn2015 = new HashSet<String>();
 	static public String getmeanormedian = "mean";
-    
+
 	/*
 	public static void main(String[] args) throws Exception {
 		int res = ToolRunner.run(new Configuration(), new AirlineFare(), args);
 		System.exit(res);
 	}
-	
-*/
+
+	 */
 	public int run(String args[]) throws Exception {
 
 		JobConf conf = new JobConf(getConf(), AirlineFare.class);
@@ -99,7 +97,7 @@ public class AirlineFare extends Configured implements Tool {
 	 * <b>Composite key, month airlinecode</b>, <b>price</b>).
 	 */
 	public static class MapClass extends MapReduceBase
-			implements Mapper<LongWritable, Text, CompositeGroupKey, DoubleWritable> {
+	implements Mapper<LongWritable, Text, CompositeGroupKey, DoubleWritable> {
 
 		public void map(LongWritable key, Text value, OutputCollector<CompositeGroupKey, DoubleWritable> output,
 				Reporter reporter) throws IOException {
@@ -114,9 +112,6 @@ public class AirlineFare extends Configured implements Tool {
 						AirlineDetails airline = new AirlineDetails(flightDetails);
 						sanityCheck(airline);
 						// Populate airline active in 2015 year
-						if (airline.getYear() == 2015) {
-							activeIn2015.add(airline.getCarrier());
-						}
 						String aircode = airline.getCarrier();
 						String month = airline.getMonth().toString();
 						CompositeGroupKey compo = new CompositeGroupKey(aircode, month);
@@ -139,7 +134,7 @@ public class AirlineFare extends Configured implements Tool {
 	 * given composite key of month and carrier.
 	 */
 	public static class Reduce extends MapReduceBase
-			implements Reducer<CompositeGroupKey, DoubleWritable, CompositeGroupKey, DoubleWritable> {
+	implements Reducer<CompositeGroupKey, DoubleWritable, CompositeGroupKey, DoubleWritable> {
 
 		public void reduce(CompositeGroupKey key, Iterator<DoubleWritable> values,
 				OutputCollector<CompositeGroupKey, DoubleWritable> output, Reporter reporter) throws IOException {
@@ -151,15 +146,14 @@ public class AirlineFare extends Configured implements Tool {
 			Double medianvalue = getMedian(cache);
 			Double meanvalue = getMean(cache);
 			Double fastmedian = getfastmedian(cache);
-			if (activeIn2015.contains(key.airlinecode)) {
-				if (getmeanormedian.equals("fastmedian")) {
-					output.collect(key, new DoubleWritable(fastmedian));
-				} else if (getmeanormedian.equals("median")) {
-					output.collect(key, new DoubleWritable(medianvalue));
-				} else {
-					output.collect(key, new DoubleWritable(meanvalue));
-				}
+			if (getmeanormedian.equals("fastmedian")) {
+				output.collect(key, new DoubleWritable(fastmedian));
+			} else if (getmeanormedian.equals("median")) {
+				output.collect(key, new DoubleWritable(medianvalue));
+			} else {
+				output.collect(key, new DoubleWritable(meanvalue));
 			}
+
 		}
 	}
 
@@ -239,7 +233,7 @@ public class AirlineFare extends Configured implements Tool {
 	 *            the ArrayList of integers.
 	 * @return sorted ArrayList of integers.
 	 */
-	
+
 	/*
 	 * @author : Kartik Mahaley, Pankaj Tripathi Purpose : Tells the user how to
 	 * give parameter to the function.

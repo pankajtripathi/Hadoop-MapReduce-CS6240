@@ -48,7 +48,6 @@ public class A1 {
 					}
 					else System.exit(0);
 				}
-				System.out.println(K);
 				displayData(outputDir,opr);
 			}
 			else
