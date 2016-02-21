@@ -1,0 +1,34 @@
+---
+title: "A3 Redux Report"
+author: "Pankaj Tripathi, Kartik Mahaley"
+date: "February 11, 2016"
+output: pdf_document
+---
+
+This is a report generated from R and it has the required results of our assignment A3.
+
+For A3, we are resusing our code from A0, A1 and A2 with some changes to suffice the requirement of A3.
+We have made few modifications in the code given by prof so that it suits our program. For instance we removed input and output property from the perf.txt instead we are taking those parameter from the user while running Make file. There are other so subtle changes. 
+
+We are taking mean/median/fastmedian for each airline irrespective of its year. 
+
+Here are our analysis:
+As per our analysis for 653 MB gzipped data on i5-8gb Mac machine and 653MB on i5-8gb Linux machine we found that performance in much better in multi thread mode followed by single thread mode followed by AWS EMR cloud and worst when run with Hadoop in local psuedo distributed mode.calculating mean was faster than calculating median or fast median.
+We had an outlier in single thread mode while calculating mean for the third time. The outlier can be seen in the plot below.
+
+```{r echo = FALSE}
+require(ggplot2)
+#read.csv("results.csv", header = FALSE)
+s <- data.frame(read.csv("results.csv", header = FALSE))
+colnames(s) = c("Environment","mode","Time")
+print(ggplot(s,aes(Environment,Time,)) 
+      + geom_boxplot(aes(color=factor(Environment)), fill=NA) 
+      + geom_point(aes(color = factor(Environment)))
+      + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+      + scale_fill_manual(values=c("blue","green","red","cyan",
+              "darkblue","darkgreen","darkred","darkcyan", "darkred","darkcyan"))
+      +scale_y_continuous(name="Time in seconds"))
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
