@@ -1,11 +1,14 @@
 package com.assignment.A5;
 
 import java.io.DataInput;
+
 import java.io.DataOutput;
 import java.io.IOException;
 
 import org.apache.hadoop.io.WritableComparable;
-
+/**
+ * @author Pankaj Tripathi, Kartik Mahaley
+ * */
 public class CompositeGroupKey implements WritableComparable<CompositeGroupKey> {
 	String name;
 	String year;

@@ -25,6 +25,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+/**
+ * @author Pankaj Tripathi, Kartik Mahaley
+ * */
 public class A5Paths extends Configured implements Tool {
 
 	//CONSTANTS
@@ -97,10 +100,13 @@ public class A5Paths extends Configured implements Tool {
 						sanityCheck(airline);
 						String carrier = airline.getCarrier();
 						String year = airline.getYear().toString();
-						String emitDestinationData = airline.getOrigin() + SEPARATOR + airline.getDestination()
-								+ SEPARATOR + airline.getActualDepartureTime() + SEPARATOR
-								+ airline.getDepartureDelay() + SEPARATOR + airline.getActualArrivalTime() + SEPARATOR
-								+ airline.getArrivalDelay() + SEPARATOR + airline.getCancelled() + SEPARATOR
+						String emitDestinationData = airline.getOrigin() + SEPARATOR 
+								+ airline.getDestination() + SEPARATOR
+								+ airline.getActualDepartureTime() + SEPARATOR
+								+ airline.getDepartureDelay() + SEPARATOR 
+								+ airline.getActualArrivalTime() + SEPARATOR
+								+ airline.getArrivalDelay() + SEPARATOR 
+								+ airline.getCancelled() + SEPARATOR
 								+ airline.getFlDate();
 						CompositeGroupKey compositekey = new CompositeGroupKey(carrier, year);
 						context.write(compositekey, new Text(emitDestinationData));
@@ -177,7 +183,8 @@ public class A5Paths extends Configured implements Tool {
 	 * Method takes the arrival and departure date and time and converts them to milliseconds.
 	 * Then it checks the condition for the difference required for connection
 	 * */
-	private static boolean compareDepCond(String f_fldate,long f_time,String g_fldate, long g_time) throws ParseException{
+	private static boolean compareDepCond(String f_fldate,long f_time,String g_fldate, long g_time) 
+			throws ParseException{
 		Date f_date=toDateChange(f_fldate);
 		Date g_date=toDateChange(g_fldate);
 		long f_date_inms = f_date.getTime()  +  f_time;
@@ -295,7 +302,7 @@ public class A5Paths extends Configured implements Tool {
 	 * The method designed with reference from 
 	 * https://vangjee.wordpress.com/2012/03/20/secondary-sorting-aka-sorting-values-in-hadoops-mapreduce-programming-paradigm/
 	 * The composite key comparator is where the secondary sorting takes place. 
-	 * It compares composite key by name ascendingly and year descendingly. 
+	 * It compares composite key by name ascending order and year descending order. 
 	 * */
 	public static class CompositeKeyComparator extends WritableComparator {
 		protected CompositeKeyComparator() {
