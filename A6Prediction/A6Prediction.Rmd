@@ -1,0 +1,65 @@
+---
+title: "A6 Prediction Report"
+author: "Pankaj Tripathi, Kartik Mahaley"
+date: "February 07, 2016"
+output: pdf_document
+---
+
+This is a report generated from R for our assignment A6 Prediction.
+
+For A6 we are resuing some part of our code in A2 like AirlineDetails.java, InsaneInputException.java and InvalidFormatException.java to gather the flight details from the files provided as input. 
+
+##Machine used:
+i5-8gb Mac machine and i5-8gb Linux machine
+
+##Code Analysis:
+
+###Using 3 jobs of mapper reducer to run in parellel:
+
+In order to make a prediction on the test data we created a 3 jobs of map reduce to run in parellel. The first job included a map reduce which the read the history data and wrote the reducer data to the files. The key for the mapper is __{year, month}__.
+Hence we had 36 files created for 3 year data.
+For the second job running in parellel we considered the test data and reduced it to 12 files each based on year and month.
+In this case we comsidered the key{year, month}. 
+For the third job we had read the validate data and wrote the output of the reducer to files. Here again our key was year and month.
+Once these files are created we fetch the output from these mapper-reducer jobs based on months. In this case we have 3 files for month of Janauary from 1995-1997 for history files and one file for validate data and one for test data.
+We have written a R scirpt which runs after the jobs are executed. It simply reads data from the 3 output folder for each mapper reducer and comapres them to give a result of false and true count along with confusion matrix.
+
+###R Script:
+
+In R we have used random forest to make prediction based on the model in place from the historical data. The columns that we have considered for the prediction are Year, Month which are key followed by Carrier, crsDepartureTime, Origin, Destination,
+Fldate, FlNum, DayOfMonth, DayOfWeek, Delay and DaysTillNextHoliday.
+For the holidays we considered some federal holidays and created al list of it. We compare each date with the list of holidays and get the nearest holiday to a particular date.
+
+
+###Execution time:
+The execution time taken for this project is 8 mins in pseudo clustered mode.
+
+
+
+\pagebreak
+__Graph for columns used in Janauary for modelling :__ 
+
+![Data for Month of January.](/Users/pankajtripathi/Desktop/RplotsJan.png)
+
+\pagebreak
+__Graph for columns used in April for modelling :__
+
+![Data for Month of April](/Users/pankajtripathi/Desktop/RplotsApr.png)
+
+\pagebreak
+__Graph for columns used in December for modelling :__
+
+![Data for Month of December](/Users/pankajtripathi/Desktop/RplotsDec.png)
+
+\pagebreak
+__Monthwise Data for prediction count:__
+
+![Confusion Mtrix](/Users/pankajtripathi/Desktop/CM.png)
+
+
+
+
+
+
+
+
