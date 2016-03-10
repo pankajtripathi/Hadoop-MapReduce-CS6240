@@ -1,9 +1,8 @@
 package com.assignment.A5;
 
 import org.apache.commons.lang.StringUtils;
-
 /**
- * @author Pankaj Tripathi, Kartik Mahaley
+ * @author Pankaj Tripathi, Kartik Mahaley, Shakti patro
  * */
 public class AirlineDetails {
 
@@ -391,6 +390,8 @@ public class AirlineDetails {
 			this.price = Double.parseDouble(flightDetails[109]);
 
 		} catch (NumberFormatException e) {
+			//System.out.println("##########ERROR FORMAT:::::::::::");
+			//e.printStackTrace();
 			throw new InvalidFormatException("String in place of a number.");
 		} catch (NullPointerException e) {
 			throw new InvalidFormatException("Null got where not expected.");
