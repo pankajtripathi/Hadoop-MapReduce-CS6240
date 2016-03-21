@@ -1,0 +1,147 @@
+---
+title: "A7 Routing Report"
+author: "Pankaj Tripathi, Kartik Mahaley, Shakti Patro, Chen Bai"
+date: "March 19, 2016"
+output: pdf_document
+---
+The report encompasses the details about the design choice, implementation, study of performance, accuracy of the solution and the graph plotted considering the code being run on AWS EMR Cluster.
+
+# Introduction:
+The problem statement for the assignment is that given an origin, a destination and a date, propose two-hops routes that minimize the chance of missed connections. Further elaboration for the assignment is furnished below.
+
+For a passenger travelling from Boston to Chicago, there are varied routes that the passenger can travel from. The passenger can travel to Chicago either via Washington or via some other cities. The assignment requires us to give a list of such routes(hops) between an origin and a destination along with the cost attached to the route. The cost here is the travel duration. If the suggested hop is a missed connection then there is a penalty attached to the suggested route which is 100 hrs. 
+
+# Design:
+The design that we have chosen to implement the task involves three phases furnished below.  
+1. __Phase-1:Model Creation__  
+2. __Phase-2:Precition__  
+3. __Phase-3:Validation__  
+A detailed description of these phases and design is provided in the implementation section.
+
+# Implementation:
+##Phase-1: Model Creation 
+This phase involves reading history files, getting connections between an origin and destination, reading connections from the previous MapReduce job and build a model.
+This phase has two MapReduce job at its behest which does all the processing.  
+
+__MapReduce Job-1:__ This job reads historical data and gives all the connections possible between an origin and destination as the output. For this job, the key is Key{Carrier, YearMonth, IntermediateStop}. In key YearMonth is year and month value concatenated while intermediate stop is the origin of the second hop. This MapReduce job for the corresponding keys will give the possible connections with output as {Carrier, Year, Month, DayOfMonth, DayOfWeek, Origin, IntermediateHop, Destination, FlightNum-1, FlightNum-2, ScheduledArrivalFlight-1, CRSElapsedTime, Distance, Duration, Missed}
+
+__MapReduce Job-2:__ This job is used for building the model. It takes the output of first MapReduce job as input and then feeds the values to the reducer based on Month and Origin.The Reducer then is used in building a model using RandomForest Algorithm of quickml.
+
+##Phase-2: Prediction
+This phase involves reading test data, getting connections between an origin and destination, reading connections and request data and then predict of all the connections(hops) predicted whether the connection was missed or not.
+This phase similar to phase-1 has same two MapReduce jobs at its behest doing the same processing where MapReduce job-1 reads the test data.
+
+##Phase-3: Validation
+This phase involves comparing the output from the phase-2 with the validation file provided to check whether the predicted connection(hop) is a missed connection or not.
+
+#Execution:
+The phases with there execution details are furnished below. Total time taken is 14.1 mins.  
+
+__Model Creation:__ Phase-1 is executed on AWS.  
+Master:  1  
+Slave:  9    
+Type:  m3.xlarge  
+Time Minutes:  6.7  
+
+__Prediction:__ Phase-2 is executed on AWS.  
+Master:  1  
+Slave:  9    
+Type:  m3.xlarge  
+Time Minutes:  7.3  
+
+__Validation:__ Phase-3 is executed on local machine.    
+Processor: i5  
+Ram: 8 GB  
+HDD speed: 5200 rpm.  
+Time Minutes: 0.11 
+
+#Task Distribution:
+_Phase-1:_ Shakti Patro, Kartik Mahaley  
+_Phase-2:_ Shakti Patro, Chen Bai  
+_Phase-3:_ Pankaj Tripathi  
+_Packaging:_ Kartik Mahaley  
+_Code Maintainence:_ Chen Bai, Shakti Patro  
+_Report:_ Pankaj Tripathi  
+
+\pagebreak
+
+#Results and Graphs:
+
+We build two models. The graphs for each has been furnished below.  
+__Model 1:__ In this case we have taken key as Key{Origin, Destination}
+
+| Correct Hops 	| Missed Hops 	| Total Predicted Hops 	|
+|-------------	|-------------	|----------------------	|
+| 7158         	| 2781        	| 9939                 	|  
+
+```{r echo = FALSE}
+dat <- data.frame(
+  Hops = factor(c("Correct Hops","Missed Hops"), levels=c("Correct Hops","Missed Hops")),
+  Number_Of_Hops = c(7158, 2781)
+)
+library(ggplot2)
+ggplot(data=dat, aes(x=Hops, y=Number_Of_Hops, fill=Hops)) +
+  geom_bar(stat="identity",colour="black") +
+  scale_fill_manual(values=c("#CC6666", "#66CC99"))
+```
+
+\pagebreak
+__Model 2:__ In this case we have taken key as Key{Month, Origin}
+
+| Correct Hops 	| Missed Hops 	| Total Predicted Hops 	|
+|-------------	|-------------	|----------------------	|
+| 7243         	| 2696        	| 9939                 	|  
+
+```{r echo = FALSE}
+dat <- data.frame(
+  Hops = factor(c("Correct Hops","Missed Hops"), levels=c("Correct Hops","Missed Hops")),
+  Number_Of_Hops = c(7243, 2696)
+)
+library(ggplot2)
+ggplot(data=dat, aes(x=Hops, y=Number_Of_Hops, fill=Hops)) +
+  geom_bar(stat="identity",colour="black") +
+  scale_fill_manual(values=c("#CC6666", "#66CC99"))
+```
+
+\pagebreak
+__Accuracy of Prediction in Percentage:__
+
+|Model| % Correct Hops  | % Missed Hops 	|
+|-----|---------------- | ---------------	| 
+|1    | 72.01         	| 27.99        	  | 
+|2    | 72.87           | 27.13           |
+
+```{r echo = FALSE}
+dat <- data.frame(
+  Hops = factor(c("Correct Hops","Correct Hops","Missed Hops","Missed Hops")),
+  Model = factor(c("Model-1","Model-2","Model-1","Model-2"), levels=c("Model-1","Model-2")),
+  Prediction_Percentage = c(72.01, 72.87, 27.99,  27.13)
+)
+library(ggplot2)
+ggplot(data=dat, aes(x=Model, y=Prediction_Percentage, fill=Hops)) +
+  geom_bar(stat="identity", position=position_dodge(), colour="black") +
+  scale_fill_manual(values=c("#999999", "#E69F00"))
+```
+
+\pagebreak
+__Execution time:__
+We executed project 3 times. Time taken for each execution is given below.
+
+|Type    | Num-1  | Num-2	| Num-3  |
+|------- |------- | ----- | ------ |
+|Phase-1 | 8.1    | 8.5   | 7      | 
+|Phase-2 | 8.4    | 8.5   | 7      | 
+|Total   | 16.5   | 17.0  | 14     |
+
+```{r echo = FALSE}
+C <- c(16.5,17,14)
+A <- c(8.1,8.5,7)
+B <- c(8.4,8.5,7)
+boxplot(A,B,C, col = c("darkred","darkcyan","darkgreen"), names = c("Phase-1","Phase-2","Total Time"), xlab="AWS Execution", ylab="Time in Minutes")
+```
+
+#Conclusion: 
+We build two models with different keys using Random Forest algorithm. There is almost no change as far as accuracy is concerned. Our final output was obtained using Model-2 {Month, Origin} which generates 2722 models compared to 13750 models generated by Model-1 {Origin, Destination}. In either cases the output that we are getting with both the models and the fields that we have considered viz {Carrier, Year, Month, DayOfMonth, DayOfWeek, Origin, IntermediateHop, Destination, FlightNum-1, FlightNum-2, ScheduledArrivalFlight-1, CRSElapsedTime, Distance, Duration, Missed} give us a great __accuracy(~72%)__.
+
+
+

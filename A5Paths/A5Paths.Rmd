@@ -82,15 +82,15 @@ dat2 <- melt(dat, id.vars = "row")
 
 library(ggplot2)
 
-ggplot(dat2, aes(x=variable, y=log(value), fill=row)) + 
-  geom_bar(stat="identity") +
+ggplot(dat2, aes(x=variable, y=log(value), fill=row)) +
+ geom_bar(stat="identity") +
   xlab("\nCarrier(Year = 2015)") +
-  ylab("Connections in log scale\n") +
+  ylab("Connections in log scale\n") 
   guides(fill=FALSE) +
   theme_bw()
 ```
 
 ```{r echo = FALSE}
 runs <- c(30, 33, 28, 148, 150, 149)
-barplot(runs, main="Run Time", names.arg=c("AWS-1","AWS-2","AWS-3","Pseudo1","Pseudo2","Pseudo3"),  border="blue")
+barplot(runs, main="Run Time",xlab = "System with number of runs",ylab="Time in mins", names.arg=c("AWS-1","AWS-2","AWS-3","Pseudo1","Pseudo2","Pseudo3"),  border="blue")
 ```
