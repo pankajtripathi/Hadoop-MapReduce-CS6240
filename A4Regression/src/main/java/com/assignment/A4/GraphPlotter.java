@@ -23,21 +23,25 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-/*
+
+/**
  * @author : Pankaj Tripathi, Kartik Mahaley
  * Class Name : GraphPlotter.java
  */
 public class GraphPlotter extends Configured implements Tool {
 
-	public int run(String[] args) throws Exception {
+	public int startPlot(String args[]) throws Exception {
+		return ToolRunner.run(new GraphPlotter(), args);
+	}
 
+	public int run(String[] args) throws Exception {
 		Configuration configuration = new Configuration();
-		configuration.set("carrier", args[3]);
+		configuration.set("carrier", args[2]);
 		Job job = new Job(configuration, "GraphPloptter");
 		job.setJarByClass(GraphPlotter.class);
 
-		Path inputpath = new Path(args[1]);
-		Path outputpath = new Path(args[2]);
+		Path inputpath = new Path(args[0]);
+		Path outputpath = new Path(args[1]);
 		FileInputFormat.addInputPath(job, inputpath);
 		FileOutputFormat.setOutputPath(job, outputpath);
 		job.setMapperClass(GraphPlotterMapper.class);
@@ -48,21 +52,16 @@ public class GraphPlotter extends Configured implements Tool {
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
+	/**
+	 * Purpose : returns key as year and week of the year
+	 */
 	public static class GraphPlotterMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
-		/*
-		 * @author : Kartik Mahaley, Pankaj Tripathi 
-		 * Function Name : map
-		 * Purpose : returns key as year and week of the year
-		 */
 		@Override
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-
-			// do not process header row
 			if (key.get() > 0) {
 				String[] flightDetails = null;
 				String line = parseCityName(value.toString()).replaceAll("\"", "");
 				flightDetails = line.split(",");
-
 				if (flightDetails.length == 110) {
 					try {
 						AirlineDetails airline = new AirlineDetails(flightDetails);
@@ -74,7 +73,6 @@ public class GraphPlotter extends Configured implements Tool {
 							double price = airline.getPrice();
 							context.write(new Text(year + "\t" + week), new DoubleWritable(price));
 						}
-
 					} catch (InvalidFormatException e) {
 						e.printStackTrace();
 					} catch (InsaneInputException e) {
@@ -89,12 +87,10 @@ public class GraphPlotter extends Configured implements Tool {
 		}
 	}
 
+	/**
+	 * Purpose : for a given key, takes input as list of the prices and returns median for it
+	 */
 	public static class GraphPlotterReducer extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
-		/*
-		 * @author : Kartik Mahaley, Pankaj Tripathi 
-		 * Function Name : reduce
-		 * Purpose : for a given key, takes input as list of the prices and returns median for it
-		 */
 		@Override
 		public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
 				throws IOException, InterruptedException {
@@ -108,9 +104,7 @@ public class GraphPlotter extends Configured implements Tool {
 
 	}
 
-	/*
-	 * @author : Kartik Mahaley, Pankaj Tripathi 
-	 * Function Name : getWeekOfDate
+	/**
 	 * Purpose : takes date as string and returns week of the year
 	 */
 	static String getWeekOfDate(String flDate) throws ParseException {
@@ -129,8 +123,7 @@ public class GraphPlotter extends Configured implements Tool {
 		return String.valueOf(week);
 	}
 
-	/*
-	 * @author : Kartik Mahaley, Pankaj Tripathi Function Name : getMedian
+	/**
 	 * Purpose : For a list of price value it returns median.
 	 */
 	static Double getMedian(List<Double> values) {
@@ -143,12 +136,12 @@ public class GraphPlotter extends Configured implements Tool {
 		return median;
 	}
 
+	/**
+	 * This replaces any "comma" inside the data with a "semicolon"
+	 * code referred from stack overflow
+	 * */
 	private static String parseCityName(String row) {
 		StringBuilder builder = new StringBuilder(row);
-
-		// below steps are done to replace any "comma" inside the data with a
-		// "semicolon"
-		// code referred from stack overflow
 		boolean inQuotes = false;
 		for (int currentIndex = 0; currentIndex < builder.length(); currentIndex++) {
 			char currentChar = builder.charAt(currentIndex);
@@ -161,14 +154,10 @@ public class GraphPlotter extends Configured implements Tool {
 		return builder.toString();
 	}
 
-	/*
-	 * @author : Kartik Mahaley, Pankaj Tripathi 
-	 * Function Name : sanityCheck 
+	/**
 	 * Purpose : This function checks if the given record is sane or not
 	 */
 	private static void sanityCheck(AirlineDetails airline) throws InsaneInputException {
-
-		// calculate timezone
 		int crsArrTimeInMinutes = calculateMinutes(airline.getCrsArrivalTime());
 		int crsDepTimeInMinutes = calculateMinutes(airline.getCrsDepartureTime());
 		int crsElapsedTimeInMinutes = airline.getCrsElapsedTime();
@@ -177,7 +166,6 @@ public class GraphPlotter extends Configured implements Tool {
 		int actualElapsedTimeInMinutes = airline.getActualElapsedTime();
 		int timezone = crsArrTimeInMinutes - crsDepTimeInMinutes - crsElapsedTimeInMinutes;
 		int actulaTimezone = actualArrTimeInMinutes - actualDepTimeInMinutes - actualElapsedTimeInMinutes - timezone;
-
 		boolean condition1 = (crsArrTimeInMinutes == 0 && crsDepTimeInMinutes == 0);
 		boolean condition2 = (timezone % 60 != 0);
 		boolean condition3 = (airline.getOriginAirportId() < 1 || airline.getOriginAirportSequenceId() < 1
@@ -191,21 +179,17 @@ public class GraphPlotter extends Configured implements Tool {
 				|| StringUtils.isEmpty(airline.getDestinationCityName())
 				|| StringUtils.isEmpty(airline.getDestinationStateName())
 				|| StringUtils.isEmpty(airline.getDestinationStateAbbr());
-
 		boolean condition5 = (airline.getCancelled() == 0) && (actulaTimezone % 24 != 0);
-
 		boolean condition6 = (airline.getArrivalDelay() > 0)
 				&& (airline.getArrivalDelay() != airline.getArrivalDelayMinutes());
 		boolean condition7 = (airline.getArrivalDelay() < 0) && (airline.getArrivalDelayMinutes() != 0);
 		boolean condition8 = (airline.getArrivalDelayMinutes() > 15) && (airline.getArrivalDelay15() == 0);
-
 		if (condition1 && condition2 && condition3 && condition4 && condition5 && condition6 && condition7
 				&& condition8)
 			throw new InsaneInputException("Sanity test failed");
-
 	}
 
-	/*
+	/**
 	 * This method takes a time in HHMM format and returns the minute value as
 	 * HH*60 + MM Ex: 1030 returns 630.
 	 */
