@@ -63,7 +63,7 @@ public class GraphPlotter extends Configured implements Tool {
 				String line = parseCityName(value.toString()).replaceAll("\"", "");
 				flightDetails = line.split(",");
 				if (flightDetails.length == 110) {
-					try {
+					try{
 						AirlineDetails airline = new AirlineDetails(flightDetails);
 						sanityCheck(airline);
 						String query = context.getConfiguration().get("carrier");
@@ -73,17 +73,11 @@ public class GraphPlotter extends Configured implements Tool {
 							double price = airline.getPrice();
 							context.write(new Text(year + "\t" + week), new DoubleWritable(price));
 						}
-					} catch (InvalidFormatException e) {
+					} catch (InvalidFormatException | InsaneInputException | ParseException e) {
 						e.printStackTrace();
-					} catch (InsaneInputException e) {
-						e.printStackTrace();
-					} catch (ParseException e) {
-						e.printStackTrace();
-					}
+					} 
 				}
-
 			}
-
 		}
 	}
 
@@ -113,7 +107,6 @@ public class GraphPlotter extends Configured implements Tool {
 			SimpleDateFormat dateFormatter1 = new SimpleDateFormat("MM/dd/yyyy");
 			date = dateFormatter1.parse(flDate);
 		} else if (flDate.contains("-")) {
-
 			SimpleDateFormat dateFormatter2 = new SimpleDateFormat("yyyy-MM-dd");
 			date = dateFormatter2.parse(flDate);
 		}
@@ -131,8 +124,7 @@ public class GraphPlotter extends Configured implements Tool {
 		Double median;
 		if (values.size() % 2 == 0)
 			median = (values.get(values.size() / 2) + values.get(values.size() / 2 - 1)) / 2;
-		else
-			median = values.get(values.size() / 2);
+		else median = values.get(values.size() / 2);
 		return median;
 	}
 

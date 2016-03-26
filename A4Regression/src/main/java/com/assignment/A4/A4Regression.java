@@ -57,7 +57,6 @@ public class A4Regression{
 			}
 		}
 		return cheapeastCarrier;
-
 	}
 
 	/**
@@ -81,15 +80,11 @@ public class A4Regression{
 						PriceTime pricetime=new PriceTime(price,elapsedtime);
 						CompositeGroupKey compositekey = new CompositeGroupKey(aircode, year);
 						context.write(compositekey, pricetime);
-					} catch (InvalidFormatException e) {
-						e.printStackTrace();
-					} catch (InsaneInputException e) {
+					} catch (InvalidFormatException | InsaneInputException e) {
 						e.printStackTrace();
 					}
 				}
-
 			}
-
 		}
 	}
 
