@@ -17,7 +17,8 @@ Fine print:
           if ArrDelayMinutes >= 15 then ArrDel15 should be true
   (5) Design the code with care as you will reuse it. Document and test it.  
   (6) The reference solution is ~1KLOC and prints 4083 for K, 435940 for F and, for instance, "UA 545.62".   Processing time is ~5 seconds. 
-
+  
+  /A0Inhale
 
 ## A1 - Threading. Airfares evolve with time, one month of traffic is not sufficient to answer which airline is the cheapest. Try with two years worth of OTP data. Improve throughput of your code with parallel processing primitives.
 Fine print: (0) Individual assignment. (1) The input is "-p -input=DIR" where DIR is the path to a directory containing data files. All files in the directory will be processed. (2) The output is K and F, and a sequence of "C p m"s where m is the median ticket price. Restrict your output to airlines that are active in January 2015. (3) Clean up your code, document and test it. (4) Sample data is here. (5) Values for K and F are 128160 and 12601051. One sample airline is "AS 202.36 171.57". The reference solution is 150LOC additional/changed over A0. Processing time is under a minute.(6) Submit your assignment as a single tar.gz file which unpacks into a directory named "LastName_FirstName_A1".  That directory should contain a README file that explains how to build and run your assignment.
